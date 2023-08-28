@@ -1,0 +1,42 @@
+﻿[HttpGet]
+public IActionResult Create()
+{
+    return View();
+}
+
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult>
+    Create([Bind("Id,Title,Content,PublicationDate,Author")] Post post)
+    {
+    if (ModelState.IsValid)
+    {
+    _context.Add(post);
+    await _context.SaveChangesAsync();
+    return RedirectToAction(nameof(Index));
+    }
+    return View(post);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult>
+        AddComment(int postId, [Bind("Content")] Comment comment)
+        {
+        var post = await _context.Posts.FindAsync(postId);
+        if (post == null)
+        {
+        return NotFound();
+        }
+
+        if (ModelState.IsValid)
+        {
+        comment.PublicationDate = DateTime.Now;
+        comment.PostId = postId;
+        _context.Add(comment);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Details), new { id = postId });
+        }
+
+        return View("Details", post);
+        }
